@@ -12,7 +12,13 @@ export class AuthController {
   async onEmailVerification() {}
   async onUserSignIn(req: Request, res: Response) {
     const { email, password } = req.body;
-    await this.authService.signInUser(email, password);
+    const { user, token } = await this.authService.signInUser(email, password);
+
+    res.cookie("accessToken", token);
+    res.status(200).json({
+      user,
+      token,
+    });
   }
   async onForgotPassword() {}
   async onForgotPassswordVerification() {}
