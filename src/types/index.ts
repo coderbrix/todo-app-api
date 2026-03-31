@@ -12,6 +12,7 @@ export interface User {
 export interface Workspace {
   id: string;
   name: string;
+  description: string | null;
   icon: string | null;
   color: string | null;
   userId: number;

@@ -6,7 +6,7 @@ import { InvalidCredential } from "@/core/exceptions/invalid-credential.exceptio
 import { appConfig } from "@/config/app.config";
 
 export class AuthService {
-  private readonly userService;
+  private readonly userService: UserService;
 
   constructor() {
     this.userService = new UserService();
@@ -25,7 +25,9 @@ export class AuthService {
       email: user.email,
     };
 
-    const token = jwt.sign(payload, appConfig.JWT.SECRET, { expiresIn: appConfig.JWT.EXPIRES_IN });
+    const token = jwt.sign(payload, appConfig.JWT.SECRET, {
+      expiresIn: appConfig.JWT.EXPIRES_IN as jwt.SignOptions["expiresIn"],
+    });
 
     return { user, token };
   }

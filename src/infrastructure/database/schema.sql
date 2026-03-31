@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS workspaces (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(255) NOT NULL,
+  description TEXT,
   icon VARCHAR(255),
   color VARCHAR(255),
   user_id INTEGER NOT NULL,
@@ -23,6 +24,9 @@ CREATE TABLE IF NOT EXISTS workspaces (
     REFERENCES users (id)
     ON DELETE CASCADE
 );
+
+-- In case the DB was initialized without `description` column.
+ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS description TEXT;
 
 CREATE TABLE IF NOT EXISTS todos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
