@@ -92,8 +92,9 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    const updated = await this.userService.updatePassword(userId, hashedPassword);
-    if (!updated) throw new UserNotFound();
+    const token = jwt.sign(payload, appConfig.JWT.SECRET, {
+      expiresIn: appConfig.JWT.EXPIRES_IN as jwt.SignOptions["expiresIn"],
+    });
 
     return { message: "Password changed successfully" };
   }
