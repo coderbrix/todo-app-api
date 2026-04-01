@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { appConfig } from "@/config/app.config";
+import { AppException } from "@/core/exceptions/app.exception";
 
 const getAccessToken = (req: Request): string | undefined => {
   const authHeader = req.headers.authorization;
@@ -49,5 +50,18 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
   } catch {
     return res.status(401).json({ message: "Unauthorized" });
   }
+};
+
+export const getUserIdOrThrow = (req: Request): number => {
+  const userId = req.user?.id;
+  if (!userId) {
+    throw new AppException({
+      statusCode: 401,
+      message: "Unauthorized",
+      error: "Unauthorized",
+    });
+  }
+
+  return userId;
 };
 
