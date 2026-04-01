@@ -3,6 +3,21 @@ export interface User {
   name: string;
   email: string;
   password: string;
+  emailVerified: boolean;
+  emailVerifiedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Workspace {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  color: string | null;
+  userId: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type Priority = 'low' | 'medium' | 'high';
