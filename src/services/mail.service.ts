@@ -13,7 +13,7 @@ export class MailService {
     });
   }
 
-  async sendResetPasswordEmail(
+  async sendResetPasswordEmail( 
     email: string,
     resetLink: string
   ): Promise<void> {

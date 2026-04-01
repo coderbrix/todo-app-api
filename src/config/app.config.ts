@@ -20,7 +20,7 @@ export const appConfig = {
     FROM: String(process.env.MAILER_FROM),
   },
   JWT: {
-    SECRET: String(process.env.JWT_SECRET),
-    EXPIRES_IN: String(process.env.JWT_EXPIRES_IN),
+    SECRET: String(process.env.JWT_SECRET || "changeMe"),
+    EXPIRES_IN: String(process.env.JWT_EXPIRES_IN || "1h"),
   },
 };
