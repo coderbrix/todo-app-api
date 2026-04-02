@@ -20,12 +20,10 @@ export class AuthService {
   }
 
   async signUpUser(name: string, email: string, password: string) {
-    if (!name || !email || !password) 
-      throw new InvalidCredential("Name, email and password are required");
+    if (!name || !email || !password) throw new InvalidCredential("Name, email and password are required");
 
     const existing = await this.userService.findUserByEmail(email);
-    if (existing) 
-      throw new InvalidCredential("Email already registered");
+    if (existing) throw new InvalidCredential("Email already registered");
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -83,16 +81,13 @@ export class AuthService {
   }
 
   async changePassword(userId: number, currentPassword: string, newPassword: string) {
-    if (!currentPassword || !newPassword) 
-      throw new InvalidCredential("Both current and new password are required");
-    
+    if (!currentPassword || !newPassword) throw new InvalidCredential("Both current and new password are required");
 
     const user = await this.userService.findUserById(userId.toString());
     if (!user) throw new UserNotFound();
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) throw new InvalidCredential("Current password is incorrect");
-    
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await this.userService.updatePassword(Number(userId), hashedPassword);
@@ -106,10 +101,30 @@ export class AuthService {
 
     const token = jwt.sign({ id: user.id }, appConfig.JWT.SECRET as string, { expiresIn: "10m" });
 
-    const resetLink = ``;
+    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
 
     await new MailService().sendResetPasswordEmail(email, resetLink);
 
     return { message: "Reset link sent to email" };
   }
+
+  async resetPassword(token: string, newPassword: string) {
+    if (!token || !newPassword) {
+      throw new InvalidCredential("Token and new password are required");
+    }
+
+    try {
+      const payload = jwt.verify(token, appConfig.JWT.SECRET) as { id: number };
+
+      const user = await this.userService.findUserById(payload.id.toString());
+      if (!user) throw new UserNotFound();
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await this.userService.updatePassword(user.id, hashedPassword);
+      return { message: "Password reset successful" };
+    } catch {
+      throw new InvalidCredential("Invalid or expired token");
+    }
+  }
+
 }

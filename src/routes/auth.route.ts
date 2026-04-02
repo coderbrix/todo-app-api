@@ -11,5 +11,6 @@ router.get("/profile", authMiddleware, controller.onGetProfile.bind(controller))
 router.post("/change-password", authMiddleware,controller.onChangePassword.bind(controller));
 router.post("/logout",  controller.onLogout.bind(controller));
 router.post("/reset-password", controller.resetPassword.bind(controller));
+router.post("/forgot-password",authMiddleware, controller.forgotPassword.bind(controller));
 
 export default router;
