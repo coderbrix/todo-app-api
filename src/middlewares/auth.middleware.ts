@@ -1,27 +1,9 @@
-import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { appConfig } from "@/config/app.config";
-import { AppException } from "@/core/exceptions/app.exception";
+import { NextFunction, Request, Response } from "express";
+import { Unauthorized } from "@/core/exceptions/unauthorized.exception";
 
-const getAccessToken = (req: Request): string | undefined => {
-  const authHeader = req.headers.authorization;
-  if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
-    return authHeader.slice("Bearer ".length).trim();
-  }
-
-  // Fallback: support cookie named `accessToken` without adding `cookie-parser`.
-  const cookieHeader = req.headers.cookie;
-  if (!cookieHeader) return undefined;
-
-  const parts = cookieHeader.split(";").map((p) => p.trim());
-  const accessTokenPart = parts.find((p) => p.startsWith("accessToken="));
-  if (!accessTokenPart) return undefined;
-
-  const rawValue = accessTokenPart.slice("accessToken=".length);
-  return decodeURIComponent(rawValue);
-};
-
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const auth = (req: Request, res: Response, next: NextFunction) => {
   const token = getAccessToken(req);
   if (!token) {
     return res.status(401).json({ message: "Unauthorized" });
@@ -52,16 +34,25 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
   }
 };
 
-export const getUserIdOrThrow = (req: Request): number => {
-  const userId = req.user?.id;
-  if (!userId) {
-    throw new AppException({
-      statusCode: 401,
-      message: "Unauthorized",
-      error: "Unauthorized",
-    });
+const getAccessToken = (req: Request): string | undefined => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+    return authHeader.slice("Bearer ".length).trim();
   }
 
-  return userId;
+  // Fallback: support cookie named `accessToken` without adding `cookie-parser`.
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) return undefined;
+
+  const parts = cookieHeader.split(";").map((p) => p.trim());
+  const accessTokenPart = parts.find((p) => p.startsWith("accessToken="));
+  if (!accessTokenPart) return undefined;
+
+  const rawValue = accessTokenPart.slice("accessToken=".length);
+  return decodeURIComponent(rawValue);
 };
 
+export const getUserIdOrThrow = (req: Request): number => {
+  if (!req.user?.id) throw new Unauthorized();
+  return req.user.id;
+};

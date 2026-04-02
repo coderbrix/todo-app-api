@@ -5,7 +5,7 @@ import {
   type CreateWorkspaceBody,
   type ListWorkspacesQuery,
   type WorkspaceIdParams,
-} from "@/middlewares/workspace.validation";
+} from "@/validation/workspace.schema";
 
 export class WorkspaceController {
   private readonly workspaceService: WorkspaceService;
@@ -32,7 +32,7 @@ export class WorkspaceController {
 
   onGetWorkspaces = async (
     req: Request<Record<string, never>, unknown, unknown, ListWorkspacesQuery>,
-    res: Response
+    res: Response,
   ) => {
     const userId = getUserIdOrThrow(req);
 
@@ -63,4 +63,3 @@ export class WorkspaceController {
     return res.status(200).json({ deleted: true });
   };
 }
-
