@@ -1,12 +1,19 @@
-import nodemailer from "nodemailer";
-import hbs from "nodemailer-express-handlebars";
 import path from "path";
+import { fileURLToPath } from "url";
+import nodemailer from "nodemailer";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+import hbs from "nodemailer-express-handlebars";
+import { appConfig } from "@/config/app.config";
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: appConfig.MAILER.HOST,
+  // port: appConfig.MAILER.PORT,
+  secure: appConfig.MAILER.SECURE,
   auth: {
-    user: process.env.EMAIL_USER as string,
-    pass: process.env.EMAIL_PASS as string,
+    user: appConfig.MAILER.USER,
+    pass: appConfig.MAILER.PASSWORD,
   },
 });
 
@@ -15,13 +22,12 @@ transporter.use(
   "compile",
   hbs({
     viewEngine: {
-      extName: ".hbs",
+      extname: ".hbs",
       partialsDir: path.resolve(__dirname, "templates"),
-      defaultLayout: false,
     },
     viewPath: path.resolve(__dirname, "templates"),
     extName: ".hbs",
-  })
+  }),
 );
 
 export default transporter;
