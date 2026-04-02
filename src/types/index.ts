@@ -1,3 +1,5 @@
+export type ValidationSource = "body" | "query" | "params";
+
 export interface User {
   id: number;
   name: string;
@@ -26,7 +28,7 @@ export interface Workspace {
   updatedAt: Date;
 }
 
-export type Priority = 'low' | 'medium' | 'high';
+export type Priority = "low" | "medium" | "high";
 
 export interface Todo {
   id: string;
