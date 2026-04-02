@@ -3,6 +3,7 @@ import "dotenv/config";
 export const appConfig = {
   MODE: String(process.env.NODE_ENV) || "development",
   PORT: Number(process.env.PORT),
+  BASE_URL: String("http://localhost:4000"),
   DB: {
     URI: String(process.env.DB_URI),
     HOST: String(process.env.DB_HOST),

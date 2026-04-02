@@ -8,9 +8,11 @@ import { MailService } from "./mail.service";
 
 export class AuthService {
   private readonly userService: UserService;
+  private readonly mailService: MailService;
 
   constructor() {
     this.userService = new UserService();
+    this.mailService = new MailService();
   }
 
   private generateToken(user: { id: number; name: string; email: string }) {
@@ -20,12 +22,10 @@ export class AuthService {
   }
 
   async signUpUser(name: string, email: string, password: string) {
-    if (!name || !email || !password) 
-      throw new InvalidCredential("Name, email and password are required");
+    if (!name || !email || !password) throw new InvalidCredential("Name, email and password are required");
 
     const existing = await this.userService.findUserByEmail(email);
-    if (existing) 
-      throw new InvalidCredential("Email already registered");
+    if (existing) throw new InvalidCredential("Email already registered");
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -83,16 +83,11 @@ export class AuthService {
   }
 
   async changePassword(userId: number, currentPassword: string, newPassword: string) {
-    if (!currentPassword || !newPassword) 
-      throw new InvalidCredential("Both current and new password are required");
-    
-
     const user = await this.userService.findUserById(userId.toString());
     if (!user) throw new UserNotFound();
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) throw new InvalidCredential("Current password is incorrect");
-    
+    if (!isMatch) throw new InvalidCredential("Invalid password");
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await this.userService.updatePassword(Number(userId), hashedPassword);
@@ -102,13 +97,16 @@ export class AuthService {
 
   async forgotPassword(email: string) {
     const user = await this.userService.findUserByEmail(email);
-    if (!user) throw new InvalidCredential("Email not found");
+    if (!user) throw new UserNotFound("User not found");
 
-    const token = jwt.sign({ id: user.id }, appConfig.JWT.SECRET as string, { expiresIn: "10m" });
+    const payload = {
+      userId: user.id,
+      type: "reset-password",
+    };
 
-    const resetLink = ``;
-
-    await new MailService().sendResetPasswordEmail(email, resetLink);
+    const token = jwt.sign(payload, appConfig.JWT.SECRET, { expiresIn: "10m" });
+    const resetLink = `${appConfig.BASE_URL}/auth/reset-password-verify?token=${token}`;
+    await this.mailService.sendResetPasswordEmail(email, resetLink);
 
     return { message: "Reset link sent to email" };
   }
