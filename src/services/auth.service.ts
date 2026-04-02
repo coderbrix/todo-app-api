@@ -110,4 +110,24 @@ export class AuthService {
 
     return { message: "Reset link sent to email" };
   }
+
+  async resetPassword(token: string, newPassword: string) {
+    if (!token || !newPassword) {
+      throw new InvalidCredential("Token and new password are required");
+    }
+
+    try {
+      const payload = jwt.verify(token, appConfig.JWT.SECRET) as { id: number };
+
+      const user = await this.userService.findUserById(payload.id.toString());
+      if (!user) throw new UserNotFound();
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await this.userService.updatePassword(user.id, hashedPassword);
+      return { message: "Password reset successful" };
+    } catch {
+      throw new InvalidCredential("Invalid or expired token");
+    }
+  }
+
 }
