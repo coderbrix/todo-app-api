@@ -20,15 +20,25 @@ export interface Workspace {
   updatedAt: Date;
 }
 
+export type Priority = 'low' | 'medium' | 'high';
+
 export interface Todo {
   id: string;
   title: string;
-  description: string | null;
+  description?: string;
+  dueDate?: Date;
+  priority: Priority;
   isCompleted: boolean;
-  userId: number;
   workspaceId: string;
-  startDate: Date | null;
-  dueDate: Date | null;
+  userId: string;
+  position: number;
   createdAt: Date;
-  updatedAt: Date;
+}
+
+export interface CreateTodoInput {
+  title: string;
+  description?: string;
+  dueDate?: Date;
+  priority?: Priority;
+  workspaceId: string;
 }
