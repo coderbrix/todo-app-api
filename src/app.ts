@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import routes from "./routes";
-import { errorHandler } from "@/middlewares/error.middleware";
+import { errorMiddleware } from "@/middlewares/error.middleware";
 
 const app = express();
 
@@ -12,10 +12,10 @@ app.use(
   cors({
     origin: true,
     credentials: true,
-  })
+  }),
 );
 
 app.use(routes);
-app.use(errorHandler);
+app.use(errorMiddleware);
 
 export default app;
