@@ -20,14 +20,12 @@ export class AuthService {
   }
 
   async signUpUser(name: string, email: string, password: string) {
-    if (!name || !email || !password) {
+    if (!name || !email || !password) 
       throw new InvalidCredential("Name, email and password are required");
-    }
 
     const existing = await this.userService.findUserByEmail(email);
-    if (existing) {
+    if (existing) 
       throw new InvalidCredential("Email already registered");
-    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -85,17 +83,16 @@ export class AuthService {
   }
 
   async changePassword(userId: number, currentPassword: string, newPassword: string) {
-    if (!currentPassword || !newPassword) {
+    if (!currentPassword || !newPassword) 
       throw new InvalidCredential("Both current and new password are required");
-    }
+    
 
     const user = await this.userService.findUserById(userId.toString());
     if (!user) throw new UserNotFound();
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      throw new InvalidCredential("Current password is incorrect");
-    }
+    if (!isMatch) throw new InvalidCredential("Current password is incorrect");
+    
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await this.userService.updatePassword(Number(userId), hashedPassword);
