@@ -11,6 +11,12 @@ export interface User {
   updatedAt: Date;
 }
 
+export interface CreateUserInput {
+  name: string;
+  email: string;
+  password: string;
+}
+
 export interface Workspace {
   id: string;
   name: string;

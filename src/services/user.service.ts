@@ -1,11 +1,32 @@
 import { db } from "@/infrastructure/database";
-import { User } from "@/types";
+import { CreateUserInput, User } from "@/types";
 
 export class UserService {
   constructor() {}
 
-  async createUser() {
-    throw new Error("Not implemented");
+  async createUser({ name, email, password }: CreateUserInput): Promise<User> {
+    const result = await db.query<User>(
+      `
+        INSERT INTO users (name, email, password)
+        VALUES ($1, $2, $3)
+        RETURNING *
+      `,
+      [name, email, password]
+    );
+
+    return result.rows[0];
+  }
+
+  async updatePassword(userId: number, newPassword: string): Promise<void> {
+    await db.query(
+      `
+        UPDATE users  
+        SET password = $1, updated_at = NOW()
+        WHERE id = $2
+      `,
+      [newPassword, userId]
+    ).then(() => {});   
+
   }
 
   async findUserById(userId: string): Promise<User | null> {

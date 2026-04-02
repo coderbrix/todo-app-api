@@ -71,4 +71,15 @@ export class AuthController {
     res.clearCookie("accessToken");
     return res.status(200).json({ message: "Logged out" });
   }
+
+
+  async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.body;
+      const result = await this.authService.forgotPassword(email);
+      return res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }       
+  }
 }
