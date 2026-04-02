@@ -2,12 +2,13 @@ import { Router } from "express";
 import { TodoController } from "../controllers/todo.controller";
 
 const router = Router();
+const controller = new TodoController();
 
-router.post("/", TodoController.createTodo);
-router.get("/workspace/:workspaceId", TodoController.getWorkspaceTodos);
-router.get("/:id", TodoController.getTodoById);
-router.patch("/:id", TodoController.updateTodo);
-router.delete("/:id", TodoController.deleteTodo);
-router.patch("/:id/reorder", TodoController.reorderTodo);
+router.post("/", controller.createTodo.bind(controller));
+router.get("/workspace/:workspaceId", controller.getWorkspaceTodos.bind(controller));
+router.get("/:id", controller.getTodoById.bind(controller));
+router.patch("/:id", controller.updateTodo.bind(controller));
+router.delete("/:id", controller.deleteTodo.bind(controller));
+router.patch("/:id/reorder", controller.reorderTodo.bind(controller));
 
 export default router;

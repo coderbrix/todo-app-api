@@ -1,21 +1,13 @@
 import { Pool } from "pg";
 import { appConfig } from "@/config/app.config";
 
-const normalizeEnv = (value: string | undefined): string | undefined => {
-  if (!value || value === "undefined" || value === "null") {
-    return undefined;
-  }
-
-  return value;
-};
-
 export const db = new Pool({
-  connectionString: normalizeEnv(appConfig.DB.URI),
-  host: normalizeEnv(appConfig.DB.HOST),
-  port: appConfig.DB.PORT || undefined,
-  user: normalizeEnv(appConfig.DB.USR_NAME),
-  password: normalizeEnv(appConfig.DB.PASSWORD),
-  database: normalizeEnv(appConfig.DB.DATABASE),
+  host: appConfig.DB.HOST,
+  port: appConfig.DB.PORT,
+  user: appConfig.DB.USR_NAME,
+  password: appConfig.DB.PASSWORD,
+  database: appConfig.DB.DATABASE,
+  ssl: true
 });
 
 export const connectDatabase = async (): Promise<void> => {
