@@ -6,7 +6,7 @@ import { errorMiddleware } from "@/middlewares/error.middleware";
 import { NotFoundException } from "./core/exceptions/not-found.exception";
 
 const app = express();
-
+app.use(cookieParser())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(

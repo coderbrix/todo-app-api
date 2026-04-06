@@ -8,7 +8,8 @@ import { MailService } from "./mail.service";
 
 export class AuthService {
   private readonly userService: UserService;
-  private readonly mailService: MailService;
+  private readonly mailService: MailService; 
+
 
   constructor() {
     this.userService = new UserService();
@@ -76,14 +77,14 @@ export class AuthService {
   }
 
   async getProfile(userId: string) {
-    const user = await this.userService.findUserById(userId);
+    const user = await this.userService.findUserById(userId as unknown as number);
     if (!user) throw new UserNotFound();
 
     return { ...user, password: undefined };
   }
 
   async changePassword(userId: number, currentPassword: string, newPassword: string) {
-    const user = await this.userService.findUserById(userId.toString());
+    const user = await this.userService.findUserById(userId);
     if (!user) throw new UserNotFound();
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
@@ -100,14 +101,13 @@ export class AuthService {
     if (!user) throw new UserNotFound("User not found");
 
     const payload = {
-      userId: user.id,
+      id: user.id,
       type: "reset-password",
     };
 
     const token = jwt.sign(payload, appConfig.JWT.SECRET, { expiresIn: "10m" });
     const resetLink = `${appConfig.BASE_URL}/auth/reset-password-verify?token=${token}`;
     await this.mailService.sendResetPasswordEmail(email, resetLink);
-
     return { message: "Reset link sent to email" };
   }
 
@@ -119,15 +119,28 @@ export class AuthService {
     try {
       const payload = jwt.verify(token, appConfig.JWT.SECRET) as { id: number };
 
-      const user = await this.userService.findUserById(payload.id.toString());
+      const user = await this.userService.findUserById(payload.id);
       if (!user) throw new UserNotFound();
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
-      await this.userService.updatePassword(user.id, hashedPassword);
+      await this.userService.updatePassword(payload.id, hashedPassword);
       return { message: "Password reset successful" };
     } catch {
       throw new InvalidCredential("Invalid or expired token");
     }
   }
 
+  async verifyResetToken(token: string) {
+    if (!token) {
+      throw new InvalidCredential("Token is required");
+    }
+
+    try {
+      const payload = jwt.verify(token, appConfig.JWT.SECRET as string) as { id: number };
+
+      return { valid: true, userId: payload.id };
+    } catch {
+      throw new InvalidCredential("Invalid or expired token");
+    }
+  }
 }
