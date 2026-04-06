@@ -8,9 +8,12 @@ import { MailService } from "./mail.service";
 
 export class AuthService {
   private readonly userService: UserService;
+  private readonly mailService: MailService; 
+
 
   constructor() {
     this.userService = new UserService();
+    this.mailService = new MailService();
   }
 
   private generateToken(user: { id: number; name: string; email: string }) {
@@ -74,20 +77,18 @@ export class AuthService {
   }
 
   async getProfile(userId: string) {
-    const user = await this.userService.findUserById(userId);
+    const user = await this.userService.findUserById(userId as unknown as number);
     if (!user) throw new UserNotFound();
 
     return { ...user, password: undefined };
   }
 
   async changePassword(userId: number, currentPassword: string, newPassword: string) {
-    if (!currentPassword || !newPassword) throw new InvalidCredential("Both current and new password are required");
-
-    const user = await this.userService.findUserById(userId.toString());
+    const user = await this.userService.findUserById(userId);
     if (!user) throw new UserNotFound();
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) throw new InvalidCredential("Current password is incorrect");
+    if (!isMatch) throw new InvalidCredential("Invalid password");
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await this.userService.updatePassword(Number(userId), hashedPassword);
@@ -97,14 +98,16 @@ export class AuthService {
 
   async forgotPassword(email: string) {
     const user = await this.userService.findUserByEmail(email);
-    if (!user) throw new InvalidCredential("Email not found");
+    if (!user) throw new UserNotFound("User not found");
 
-    const token = jwt.sign({ id: user.id }, appConfig.JWT.SECRET as string, { expiresIn: "10m" });
+    const payload = {
+      id: user.id,
+      type: "reset-password",
+    };
 
-    const resetLink = `BASE_URL/reset-password?token=${token}`;
-
-    await new MailService().sendResetPasswordEmail(email, resetLink);
-
+    const token = jwt.sign(payload, appConfig.JWT.SECRET, { expiresIn: "10m" });
+    const resetLink = `${appConfig.BASE_URL}/auth/reset-password-verify?token=${token}`;
+    await this.mailService.sendResetPasswordEmail(email, resetLink);
     return { message: "Reset link sent to email" };
   }
 
@@ -116,11 +119,11 @@ export class AuthService {
     try {
       const payload = jwt.verify(token, appConfig.JWT.SECRET) as { id: number };
 
-      const user = await this.userService.findUserById(payload.id.toString());
+      const user = await this.userService.findUserById(payload.id);
       if (!user) throw new UserNotFound();
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
-      await this.userService.updatePassword(user.id, hashedPassword);
+      await this.userService.updatePassword(payload.id, hashedPassword);
       return { message: "Password reset successful" };
     } catch {
       throw new InvalidCredential("Invalid or expired token");

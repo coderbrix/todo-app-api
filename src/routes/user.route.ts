@@ -10,3 +10,4 @@ router.patch("/me", auth, controller.updateMe.bind(controller));
 router.delete("/me", auth, controller.deleteMe.bind(controller));
 
 export default router;
+

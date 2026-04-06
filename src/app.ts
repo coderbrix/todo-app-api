@@ -1,8 +1,9 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import routes from "./routes";
+import routes from "@/routes";
 import { errorMiddleware } from "@/middlewares/error.middleware";
+import { NotFoundException } from "./core/exceptions/not-found.exception";
 
 const app = express();
 app.use(cookieParser())
@@ -16,6 +17,9 @@ app.use(
 );
 
 app.use(routes);
+app.use((_req, _res, next) => {
+  next(new NotFoundException());
+});
 app.use(errorMiddleware);
 
 export default app;
