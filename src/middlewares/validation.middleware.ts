@@ -17,7 +17,6 @@ export const validation = <T extends z.ZodTypeAny>(schema: T, source: Validation
       return;
     }
 
-    (req as Request & { [key in ValidationSource]?: unknown })[source] = parsed.data;
     next();
   };
 };

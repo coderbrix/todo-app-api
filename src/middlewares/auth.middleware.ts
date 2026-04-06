@@ -5,6 +5,7 @@ import { Unauthorized } from "@/core/exceptions/unauthorized.exception";
 
 export const auth = (req: Request, res: Response, next: NextFunction) => {
   const token = getAccessToken(req);
+  console.log(token);
   if (!token) throw new Unauthorized();
   let payload = null;
 

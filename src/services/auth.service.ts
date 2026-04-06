@@ -8,8 +8,7 @@ import { MailService } from "./mail.service";
 
 export class AuthService {
   private readonly userService: UserService;
-  private readonly mailService: MailService; 
-
+  private readonly mailService: MailService;
 
   constructor() {
     this.userService = new UserService();
@@ -54,10 +53,6 @@ export class AuthService {
   }
 
   async signInUser(email: string, password: string) {
-    if (!email || !password) {
-      throw new InvalidCredential("Email and password are required");
-    }
-
     const user = await this.userService.findUserByEmail(email);
     if (!user) throw new InvalidCredential("Invalid email or password");
 
