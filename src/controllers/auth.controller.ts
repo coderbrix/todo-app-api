@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "@/services/auth.service";
+import { appConfig } from "@/config/app.config";
 
 export class AuthController {
   private readonly authService: AuthService;
@@ -41,7 +42,7 @@ export class AuthController {
       const user = req.user;
       if (!user) return res.status(401).json({ message: "Unauthorized" });
 
-      const profile = await this.authService.getProfile(user.id);
+      const profile = await this.authService.getProfile((user.id));
       return res.status(200).json({ profile });
     } catch (err) {
       next(err);
@@ -79,11 +80,12 @@ export class AuthController {
       next(err);
     }
   }
+  
   async forgotPassword(req: Request, res: Response, next: NextFunction) {
     try {
       const { email } = req.body;
       const result = await this.authService.forgotPassword(email);
-      return res.status(200).json(result);
+      return res.status(200).json({message: result.message});
     } catch (err) {
       next(err);
     }

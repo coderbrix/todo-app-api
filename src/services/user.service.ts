@@ -82,4 +82,14 @@ export class UserService {
       [userId]
     );
   }
+  async updatePassword(userId: number, hashedPassword: string) {
+    await db.query(
+      `
+      UPDATE users
+      SET password = $1, updated_at = NOW()
+      WHERE id = $2
+      `,
+      [hashedPassword, userId]
+    );  
+  }  
 }
