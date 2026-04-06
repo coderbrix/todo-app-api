@@ -55,11 +55,7 @@ export class AuthController {
 
       const { currentPassword, newPassword } = req.body;
 
-      const result = await this.authService.changePassword(
-        user.id,
-        currentPassword,
-        newPassword
-      );
+      const result = await this.authService.changePassword(user.id, currentPassword, newPassword);
 
       return res.status(200).json(result);
     } catch (err) {
@@ -72,15 +68,16 @@ export class AuthController {
     return res.status(200).json({ message: "Logged out" });
   }
 
-
   async resetPassword(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email } = req.body;
-      const result = await this.authService.forgotPassword(email);
+      const { token, newPassword } = req.body;
+
+      const result = await this.authService.resetPassword(token, newPassword);
+
       return res.status(200).json(result);
     } catch (err) {
       next(err);
-    }       
+    }
   }
   async forgotPassword(req: Request, res: Response, next: NextFunction) {
     try {
@@ -89,6 +86,23 @@ export class AuthController {
       return res.status(200).json(result);
     } catch (err) {
       next(err);
+    }
+  }
+
+  async onVerifyResetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token, callbackUrl } = req.query as {
+        token: string;
+        callbackUrl?: string;
+      };
+
+      await this.authService.verifyResetToken(token);
+
+      const redirectUrl = callbackUrl || `http://localhost:3000/reset-password?token=${token}`;
+
+      return res.redirect(redirectUrl);
+    } catch (err) {
+      return res.status(400).json({ message: "Invalid or expired token" });
     }
   }
 }

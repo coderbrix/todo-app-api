@@ -101,7 +101,7 @@ export class AuthService {
 
     const token = jwt.sign({ id: user.id }, appConfig.JWT.SECRET as string, { expiresIn: "10m" });
 
-    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    const resetLink = `BASE_URL/reset-password?token=${token}`;
 
     await new MailService().sendResetPasswordEmail(email, resetLink);
 
@@ -127,4 +127,17 @@ export class AuthService {
     }
   }
 
+  async verifyResetToken(token: string) {
+    if (!token) {
+      throw new InvalidCredential("Token is required");
+    }
+
+    try {
+      const payload = jwt.verify(token, appConfig.JWT.SECRET as string) as { id: number };
+
+      return { valid: true, userId: payload.id };
+    } catch {
+      throw new InvalidCredential("Invalid or expired token");
+    }
+  }
 }
