@@ -1,27 +1,35 @@
 import "dotenv/config";
 
 export const appConfig = {
-  MODE: String(process.env.NODE_ENV) || "development",
-  PORT: Number(process.env.PORT),
-  BASE_URL: String("http://localhost:4000"),
+  MODE: process.env.NODE_ENV || "development",
+  PORT: Number(process.env.PORT) || 4000,
+  BASE_URL: process.env.BASE_URL || "http://localhost:4000",
+
+  CLIENT: {
+    LOCAL: process.env.CLIENT_URL || "http://localhost:3000",
+    PROD: process.env.PROD_CLIENT_URL || "",
+  },
+
   DB: {
-    URI: String(process.env.DB_URI),
-    HOST: String(process.env.DB_HOST),
+    URI: process.env.DB_URI,
+    HOST: process.env.DB_HOST,
     PORT: Number(process.env.DB_PORT),
-    USR_NAME: String(process.env.DB_USERNAME),
-    PASSWORD: String(process.env.DB_PASSWORD),
-    DATABASE: String(process.env.DB_DATABASE),
+    USR_NAME: process.env.DB_USERNAME,
+    PASSWORD: process.env.DB_PASSWORD,
+    DATABASE: process.env.DB_DATABASE,
   },
+
   MAILER: {
-    HOST: String(process.env.MAILER_HOST),
-    PORT: String(process.env.MAILER_PORT),
-    SECURE: Boolean(process.env.MAILER_SECURE),
-    USER: String(process.env.MAILER_USER),
-    PASSWORD: String(process.env.MAILER_PASSWORD),
-    FROM: String(process.env.MAILER_FROM),
+    HOST: process.env.MAILER_HOST,
+    PORT: Number(process.env.MAILER_PORT),
+    SECURE: process.env.MAILER_SECURE === "true",
+    USER: process.env.MAILER_USER,
+    PASSWORD: process.env.MAILER_PASSWORD,
+    FROM: process.env.MAILER_FROM,
   },
+
   JWT: {
-    SECRET: String(process.env.JWT_SECRET || "changeMe"),
-    EXPIRES_IN: String(process.env.JWT_EXPIRES_IN || "1h"),
+    SECRET: process.env.JWT_SECRET || "changeMe",
+    EXPIRES_IN: process.env.JWT_EXPIRES_IN || "1h",
   },
 };
