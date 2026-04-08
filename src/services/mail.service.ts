@@ -3,38 +3,46 @@ import transporter from "../infrastructure/mailer";
 export class MailService {
   constructor() {}
 
+  // Welcome Email
   async sendWelcomeEmail(name: string, email: string): Promise<void> {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
-      subject: "Welcome!",
+      subject: "Welcome to Todo App 🎉",
       template: "welcome",
       context: { name },
     });
   }
 
+  // Reset Password
   async sendResetPasswordEmail(
     email: string,
-    resetLink: string
+    token: string
   ): Promise<void> {
+    const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+
+    const resetLink = `${baseUrl}/api/reset-password?token=${token}`;
+
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
-      subject: "Reset Password",
-      html: `<a href="${resetLink}">Reset Password</a>`,
+      subject: "Reset Your Password",
+      template: "reset-password",
+      context: { resetLink },
     });
   }
 
+  // Password Changed Email
   async sendChangedPasswordEmail(email: string): Promise<void> {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
-      subject: "Password Changed",
-      html: `<p>Password changed successfully</p>`,
+      subject: "Your Password Has Been Changed",
+      template: "password-changed",
     });
   }
 
-  // ✅ YOUR MAIN TASK (FIXED)
+  // Verification Email
   async sendVerificationEmail(
     email: string,
     token: string
@@ -43,17 +51,12 @@ export class MailService {
 
     const verificationUrl = `${baseUrl}/api/verify-email?token=${token}`;
 
-    try {
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "Verify Your Email",
-        template: "verify-email",
-        context: { verificationUrl },
-      });
-    } catch (error) {
-      console.error("Verification email failed:", error);
-      throw error;
-    }
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Verify Your Email Address",
+      template: "verify-email",
+      context: { verificationUrl },
+    });
   }
 }
