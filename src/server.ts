@@ -6,7 +6,7 @@ const bootstrap = async (): Promise<void> => {
   await connectDatabase();
 
   app.listen(appConfig.PORT, () => {
-    console.log(`Server is runing at: localhost:${appConfig.PORT}`);
+    console.log(`Server is running at: localhost:${appConfig.PORT}`);
   });
 };
 
