@@ -4,7 +4,7 @@ export const createTodoSchema = z.object({
   title: z.string().min(3).max(150),
   description: z.string(),
   dueDate: z.coerce.date(),
-  priority: z.number(),
+  priority: z.enum(["low", "medium", "high"]).default("medium"),
   workspaceId: z.string().nonempty(),
 });
 
@@ -29,7 +29,7 @@ export const workspaceIdParamSchema = z.object({
 });
 
 export const listTodosQuerySchema = z.object({
-  sort: z.enum(["latest", "oldest"]).optional(),
+  sort: z.enum(["dueDate", "priority", "latest", "oldest"]).optional(),
   priority: z.enum(["low", "medium", "high"]).optional(),
   isCompleted: z.enum(["true", "false"]).optional(),
 });
