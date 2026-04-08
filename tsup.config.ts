@@ -13,7 +13,7 @@ export default defineConfig({
     };
   },
   onSuccess: async () => {
-    execSync("cp -r src/infrastructure/mailer/templates/*.hbs dist/infrastructure/mailer/templates/", {
+    execSync("mkdir -p dist/infrastructure/mailer/templates && cp -r src/infrastructure/mailer/templates/*.hbs dist/infrastructure/mailer/templates/", {
       stdio: "inherit",
     });
   },

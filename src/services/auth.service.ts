@@ -4,29 +4,138 @@ import { UserService } from "@/services/user.service";
 import { UserNotFound } from "@/core/exceptions/user-not-found.exception";
 import { InvalidCredential } from "@/core/exceptions/invalid-credential.exception";
 import { appConfig } from "@/config/app.config";
+import { MailService } from "./mail.service";
 
 export class AuthService {
-  private readonly userService;
+  private readonly userService: UserService;
+  private readonly mailService: MailService;
 
   constructor() {
     this.userService = new UserService();
+    this.mailService = new MailService();
   }
 
-  async signInUser(email: string, password: string) {
-    const user = await this.userService.findUserByEmail(email);
-    if (!user) throw new InvalidCredential("Invalid email address");
+  private generateToken(user: { id: number; name: string; email: string }) {
+    return jwt.sign(user, appConfig.JWT.SECRET, {
+      expiresIn: appConfig.JWT.EXPIRES_IN as string | number,
+    });
+  }
 
-    const isPasswordMatched = bcrypt.compareSync(password, user.password);
-    if (!isPasswordMatched) throw new InvalidCredential("Invalid email or password");
+  async signUpUser(name: string, email: string, password: string) {
+    if (!name || !email || !password) throw new InvalidCredential("Name, email and password are required");
 
-    const payload = {
+    const existing = await this.userService.findUserByEmail(email);
+    if (existing) throw new InvalidCredential("Email already registered");
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await this.userService.createUser({
+      name,
+      email,
+      password: hashedPassword,
+    });
+
+    const token = this.generateToken({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
+
+    const safeUser = {
       id: user.id,
       name: user.name,
       email: user.email,
     };
+    return {
+      user: safeUser,
+      token,
+    };
+  }
 
-    const token = jwt.sign(payload, appConfig.JWT.SECRET, { expiresIn: appConfig.JWT.EXPIRES_IN });
+  async signInUser(email: string, password: string) {
+    const user = await this.userService.findUserByEmail(email);
+    if (!user) throw new InvalidCredential("Invalid email or password");
 
-    return { user, token };
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) throw new InvalidCredential("Invalid email or password");
+
+    const token = this.generateToken({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
+
+    return {
+      user: { ...user, password: undefined },
+      token,
+    };
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.userService.findUserById(userId as unknown as number);
+    if (!user) throw new UserNotFound();
+
+    return { ...user, password: undefined };
+  }
+
+  async changePassword(userId: number, currentPassword: string, newPassword: string) {
+    const user = await this.userService.findUserById(userId);
+    if (!user) throw new UserNotFound();
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) throw new InvalidCredential("Invalid password");
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.userService.updatePassword(Number(userId), hashedPassword);
+
+    return { message: "Password changed successfully" };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.userService.findUserByEmail(email);
+    if (!user) throw new UserNotFound("User not found");
+
+    const payload = {
+      id: user.id,
+      type: "reset-password",
+    };
+
+    const token = jwt.sign(payload, appConfig.JWT.SECRET, { expiresIn: "10m" });
+    const resetLink = `${appConfig.BASE_URL}/auth/reset-password-verify?token=${token}`;
+    await this.mailService.sendResetPasswordEmail(email, resetLink);
+    return { message: "Reset link sent to email" };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    if (!token || !newPassword) {
+      throw new InvalidCredential("Token and new password are required");
+    }
+
+    try {
+      const payload = jwt.verify(token, appConfig.JWT.SECRET) as { id: number };
+
+      const user = await this.userService.findUserById(payload.id);
+      if (!user) throw new UserNotFound();
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await this.userService.updatePassword(payload.id, hashedPassword);
+      return { message: "Password reset successful" };
+    } catch {
+      throw new InvalidCredential("Invalid or expired token");
+    }
+  }
+
+  async verifyResetToken(token: string) {
+    if (!token) {
+      throw new InvalidCredential("Token is required");
+    }
+
+    try {
+      const payload = jwt.verify(token, appConfig.JWT.SECRET as string) as { id: number };
+
+      return { valid: true, userId: payload.id };
+    } catch {
+      throw new InvalidCredential("Invalid or expired token");
+    }
   }
 }
